@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, ShieldCheck, Database } from "lucide-react";
+import { Menu, ShieldCheck, Database, Sparkles } from "lucide-react";
 
 export default function Header({
   activeNav,
@@ -11,17 +11,22 @@ export default function Header({
       case "dashboards":
         return {
           title: "Dashboards",
-          subtitle: "QueryAI — Saved analytics views & cards",
+          subtitle: "AIQ — Saved analytics views & pinned queries",
         };
       case "data-sources":
         return {
           title: "Data Sources",
-          subtitle: "QueryAI — PostgreSQL schema & relationships",
+          subtitle: "AIQ — PostgreSQL connections & schema catalog",
+        };
+      case "query-editor":
+        return {
+          title: "AI Query Studio",
+          subtitle: "AIQ — Natural language to PostgreSQL SQL generator",
         };
       default:
         return {
-          title: "Ask a question",
-          subtitle: "QueryAI — PostgreSQL",
+          title: "Workspace Overview",
+          subtitle: "AIQ — Ask Smarter. Query Faster.",
         };
     }
   };
@@ -36,26 +41,28 @@ export default function Header({
             type="button"
             className="mobile-menu-toggle"
             onClick={onToggleMobileMenu}
-            aria-label="Toggle navigation"
+            aria-label="Toggle navigation menu"
           >
-            <Menu size={20} />
+            <Menu size={18} />
           </button>
         )}
         <div className="header-titles">
-          <h1 className="header-title">{title}</h1>
+          <div className="header-title-row">
+            <h1 className="header-title">{title}</h1>
+          </div>
           <p className="header-subtitle">{subtitle}</p>
         </div>
       </div>
 
       <div className="header-right">
         <div className="header-badge read-only-badge">
-          <ShieldCheck size={14} className="badge-icon success-icon" />
-          <span>Read-only mode</span>
+          <ShieldCheck size={14} style={{ color: "var(--accent-primary-light)" }} />
+          <span>Read-Only Guardrails</span>
         </div>
 
         <div className="header-badge db-status-badge">
           <span className={`status-dot ${schemaStatus === "connected" ? "online" : "checking"}`} />
-          <span>{schemaStatus === "connected" ? "PostgreSQL Connected" : "Connecting..."}</span>
+          <span>{schemaStatus === "connected" ? "PostgreSQL Active" : "Connecting..."}</span>
         </div>
       </div>
     </header>

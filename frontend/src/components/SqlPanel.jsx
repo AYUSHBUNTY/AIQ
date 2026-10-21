@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Copy, Check, Terminal, Info } from "lucide-react";
+import { Copy, Check, Terminal, Info, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function SqlPanel({ sql, explanation }) {
   const [copied, setCopied] = useState(false);
@@ -11,7 +11,6 @@ export default function SqlPanel({ sql, explanation }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const textarea = document.createElement("textarea");
       textarea.value = sql;
       document.body.appendChild(textarea);
@@ -25,10 +24,30 @@ export default function SqlPanel({ sql, explanation }) {
 
   return (
     <div className="generated-sql-panel">
+      {/* Panel Header */}
       <div className="sql-panel-header">
         <div className="sql-panel-title-wrap">
           <Terminal size={14} className="sql-icon" />
           <span className="sql-panel-title">Generated SQL</span>
+          {sql && (
+            <span
+              style={{
+                fontSize: "11px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "2px 8px",
+                borderRadius: "var(--radius-xs)",
+                background: "rgba(34, 197, 94, 0.12)",
+                color: "#4ADE80",
+                border: "1px solid rgba(34, 197, 94, 0.25)",
+                marginLeft: "6px",
+              }}
+            >
+              <ShieldCheck size={11} />
+              Validated
+            </span>
+          )}
         </div>
 
         {sql && (
@@ -53,6 +72,7 @@ export default function SqlPanel({ sql, explanation }) {
         )}
       </div>
 
+      {/* Code Display Area */}
       <div className="sql-code-container">
         {sql ? (
           <pre className="sql-code-block">
@@ -60,14 +80,16 @@ export default function SqlPanel({ sql, explanation }) {
           </pre>
         ) : (
           <div className="sql-placeholder">
-            Your generated SQL will appear here.
+            <Sparkles size={14} style={{ marginRight: "8px", color: "var(--accent-primary-light)" }} />
+            Your AI-generated PostgreSQL query will appear here.
           </div>
         )}
       </div>
 
+      {/* Explanation Bar */}
       {explanation && (
         <div className="sql-explanation-bar">
-          <Info size={13} className="info-icon" />
+          <Info size={14} className="info-icon" />
           <span className="explanation-text">{explanation}</span>
         </div>
       )}

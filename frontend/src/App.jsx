@@ -7,7 +7,7 @@ import SqlPanel from "./components/SqlPanel";
 import ResultToolbar from "./components/ResultToolbar";
 import ResultsTable from "./components/ResultsTable";
 import ResultsChart from "./components/ResultsChart";
-import RecentQueriesPanel from "./components/RecentQueriesPanel";
+import StudioRightPanel from "./components/StudioRightPanel";
 import DashboardsView from "./components/DashboardsView";
 import DataSourcesView from "./components/DataSourcesView";
 import {
@@ -17,15 +17,16 @@ import {
   setActiveDataSource,
 } from "./api";
 
-const RECENT_QUERIES_KEY = "queryai_recent_queries";
-const SAVED_DASHBOARDS_KEY = "queryai_saved_dashboards";
+const RECENT_QUERIES_KEY = "aiq_recent_queries";
+const SAVED_DASHBOARDS_KEY = "aiq_saved_dashboards";
 
 export default function App() {
-  // Navigation: "home" is the dedicated landing page by default
+  // Navigation: "home" is the dedicated workspace overview by default
   const [activeNav, setActiveNav] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Query state (preserved on Query Editor)
+  // Query state (preserved on AI Query Studio)
   const [question, setQuestion] = useState("");
   const [sql, setSql] = useState("");
   const [explanation, setExplanation] = useState("");
@@ -37,10 +38,10 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Visualization mode
+  // Visualization mode: table | chart
   const [viewMode, setViewMode] = useState("table");
 
-  // Schema state
+  // Schema & Data Sources state
   const [schemaRaw, setSchemaRaw] = useState("");
   const [schemaTables, setSchemaTables] = useState([]);
   const [schemaStatus, setSchemaStatus] = useState("checking");
@@ -48,11 +49,12 @@ export default function App() {
   const [activeSourceId, setActiveSourceId] = useState("");
   const [dataSourcesMode, setDataSourcesMode] = useState("connect");
 
-  // Local storage state: Recent queries with fallback to prior key
+  // Local storage state: Recent queries with fallback to prior keys
   const [recentQueries, setRecentQueries] = useState(() => {
     try {
       const stored =
         localStorage.getItem(RECENT_QUERIES_KEY) ||
+        localStorage.getItem("queryai_recent_queries") ||
         localStorage.getItem("querymind_recent_queries");
       return stored ? JSON.parse(stored) : [];
     } catch {
@@ -60,11 +62,12 @@ export default function App() {
     }
   });
 
-  // Local storage state: Dashboards with fallback to prior key
+  // Local storage state: Dashboards with fallback to prior keys
   const [savedDashboards, setSavedDashboards] = useState(() => {
     try {
       const stored =
         localStorage.getItem(SAVED_DASHBOARDS_KEY) ||
+        localStorage.getItem("queryai_saved_dashboards") ||
         localStorage.getItem("querymind_saved_dashboards");
       return stored ? JSON.parse(stored) : [];
     } catch {
@@ -72,7 +75,20 @@ export default function App() {
     }
   });
 
-  // Check database connectivity and fetch schema on mount without executing queries
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Toggle sidebar with Ctrl + \
+      if (e.ctrlKey && e.key === "\\") {
+        e.preventDefault();
+        setSidebarCollapsed((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Fetch schema on mount without executing queries
   const loadSchema = useCallback(async (sourceId = "") => {
     try {
       setSchemaStatus("checking");
@@ -151,7 +167,7 @@ export default function App() {
     setViewMode("table");
   };
 
-  // Submit query
+  // Submit natural language query
   const handleAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed || isLoading) return;
@@ -219,7 +235,6 @@ export default function App() {
       setViewMode("table");
     }
 
-    // Always navigate to query-editor when selecting a query
     setActiveNav("query-editor");
   };
 
@@ -269,7 +284,7 @@ export default function App() {
     setActiveNav("query-editor");
   };
 
-  // Quick query table helper from DataSourcesView
+  // Quick query table helper from Schema Explorer / DataSourcesView
   const handleQueryTable = (starterQuestion) => {
     setQuestion(starterQuestion);
     setActiveNav("query-editor");
@@ -297,30 +312,44 @@ export default function App() {
 
   return (
     <div className="app-layout">
-      {/* Sidebar Navigation */}
+      {/* Redesigned Collapsible Sidebar Navigation */}
       <Sidebar
         activeNav={activeNav}
         setActiveNav={setActiveNav}
         recentQueries={recentQueries}
+        savedDashboards={savedDashboards}
         onSelectQuery={handleSelectRecentQuery}
         mobileOpen={mobileMenuOpen}
         setMobileOpen={setMobileMenuOpen}
+        collapsed={sidebarCollapsed}
+        setCollapsed={setSidebarCollapsed}
       />
 
       {/* Main Content Area */}
       <main className="app-main-content">
-        {/* Render View Based on activeNav */}
         {activeNav === "home" ? (
-          /* SECTION 1: DEDICATED INTRODUCTORY LANDING PAGE */
+          /* WORKSPACE OVERVIEW / LANDING */
           <HomeLandingView
             onStartQuerying={() => setActiveNav("query-editor")}
-            onConnectDatabase={() => { setDataSourcesMode("connect"); setActiveNav("data-sources"); }}
-            onImportSchema={() => { setDataSourcesMode("schema"); setActiveNav("data-sources"); }}
+            onConnectDatabase={() => {
+              setDataSourcesMode("connect");
+              setActiveNav("data-sources");
+            }}
+            onImportSchema={() => {
+              setDataSourcesMode("schema");
+              setActiveNav("data-sources");
+            }}
+            onExploreDashboards={() => setActiveNav("dashboards")}
+            dataSources={dataSources}
+            activeSource={activeSource}
+            recentQueries={recentQueries}
+            savedDashboards={savedDashboards}
+            onSelectRecentQuery={handleSelectRecentQuery}
             schemaStatus={schemaStatus}
             onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
           />
         ) : (
-          /* OTHER APP VIEWS (WITH STANDARD HEADER) */
+          /* ALL OTHER APP VIEWS (WITH STANDARD HEADER) */
           <>
             <Header
               activeNav={activeNav}
@@ -349,11 +378,10 @@ export default function App() {
                 onQueryTable={handleQueryTable}
               />
             ) : (
-              /* QUERY EDITOR: THE FULL SQL QUERY WORKSPACE */
+              /* AI QUERY STUDIO: 60% LEFT / 40% RIGHT SPLIT */
               <div className="query-workspace-layout">
-                {/* Left Column: Main Query Workspace */}
+                {/* Left Column (60%): Database Selector, Input, SQL, Results */}
                 <div className="workspace-main-column">
-                  {/* Question Input Card */}
                   <QueryInput
                     question={question}
                     setQuestion={setQuestion}
@@ -369,10 +397,8 @@ export default function App() {
                     onManageSources={() => setActiveNav("data-sources")}
                   />
 
-                  {/* Generated SQL Panel */}
                   <SqlPanel sql={sql} explanation={explanation} />
 
-                  {/* Results Toolbar */}
                   {hasRunQuery && (
                     <ResultToolbar
                       rowsCount={rows.length}
@@ -389,7 +415,6 @@ export default function App() {
                     />
                   )}
 
-                  {/* Results Display */}
                   {viewMode === "chart" && hasChartableData ? (
                     <ResultsChart columns={columns} rows={rows} />
                   ) : (
@@ -402,11 +427,14 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Right Column: Recent Queries Card */}
+                {/* Right Column (40%): Schema Explorer & History */}
                 <div className="workspace-recent-column">
-                  <RecentQueriesPanel
+                  <StudioRightPanel
+                    schemaTables={schemaTables}
+                    activeSource={activeSource}
                     recentQueries={recentQueries}
                     onSelectQuery={handleSelectRecentQuery}
+                    onQueryTable={handleQueryTable}
                     currentQuestion={question}
                   />
                 </div>

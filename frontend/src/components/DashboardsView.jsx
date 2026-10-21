@@ -67,14 +67,14 @@ export default function DashboardsView({
           <LayoutDashboard size={40} className="empty-icon" />
           <h3>No saved dashboards yet</h3>
           <p>
-            When you run a query in the Query Editor, click the <strong>Add to dashboard</strong> button in the results toolbar to pin it here.
+            When you run a query in AI Query Studio, click the <strong>Add to dashboard</strong> button in the results toolbar to pin it here.
           </p>
           <button
             type="button"
             className="btn-primary-action"
             onClick={onGoToEditor}
           >
-            Go to Query Editor
+            Go to AI Query Studio
           </button>
         </div>
       )}

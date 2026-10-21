@@ -3,342 +3,318 @@ import {
   Sparkles,
   Database,
   ShieldCheck,
-  Download,
   ArrowRight,
   Code2,
-  Table as TableIcon,
+  LayoutDashboard,
+  Clock,
   CheckCircle2,
+  Layers,
+  FileCode2,
+  FolderSync,
+  Play,
   Menu,
 } from "lucide-react";
+import AiqLogo from "./AiqLogo";
 
 export default function HomeLandingView({
   onStartQuerying,
   onConnectDatabase,
   onImportSchema,
+  onExploreDashboards,
+  dataSources = [],
+  activeSource = null,
+  recentQueries = [],
+  savedDashboards = [],
+  onSelectRecentQuery,
   schemaStatus,
   onToggleMobileMenu,
 }) {
-  const scrollToFeatures = () => {
-    const el = document.getElementById("features-section");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const liveCount = dataSources.filter((s) => s.is_live).length;
+  const totalSourcesCount = dataSources.length;
+  const queriesCount = recentQueries.length;
+  const dashboardsCount = savedDashboards.length;
+
+  const quickActions = [
+    {
+      id: "ask-ai",
+      title: "Ask AI",
+      description: "Convert natural language into read-only SQL with schema awareness.",
+      icon: Sparkles,
+      onClick: onStartQuerying,
+      tag: "Studio",
+    },
+    {
+      id: "connect-db",
+      title: "Connect Database",
+      description: "Securely link your live PostgreSQL or Supabase instances.",
+      icon: Database,
+      onClick: onConnectDatabase,
+      tag: "Live DB",
+    },
+    {
+      id: "import-schema",
+      title: "Import Schema",
+      description: "Paste DDL or upload files to generate SQL without live credentials.",
+      icon: FileCode2,
+      onClick: onImportSchema,
+      tag: "DDL / JSON",
+    },
+    {
+      id: "explore-dashboards",
+      title: "Explore Dashboards",
+      description: "Review pinned query cards, visualizations, and data exports.",
+      icon: LayoutDashboard,
+      onClick: onExploreDashboards || onStartQuerying,
+      tag: "Analytics",
+    },
+  ];
 
   return (
-    <div className="home-landing-container">
-      {/* Mobile Top Bar */}
-      <div className="landing-mobile-bar">
+    <div className="home-workspace-view">
+      {/* MOBILE TOP BAR */}
+      <div style={{ display: "none" }} className="mobile-top-bar">
         {onToggleMobileMenu && (
-          <button
-            type="button"
-            className="mobile-menu-toggle-landing"
-            onClick={onToggleMobileMenu}
-            aria-label="Toggle navigation menu"
-          >
-            <Menu size={20} />
+          <button type="button" onClick={onToggleMobileMenu} className="mobile-menu-toggle">
+            <Menu size={18} />
           </button>
         )}
-        <div className="landing-mobile-brand">QueryAI</div>
+        <AiqLogo size={26} showText={true} />
       </div>
 
-      {/* SECTION 1: HERO */}
-      <section className="hero-section">
-        <div className="hero-content">
-          <div className="hero-kicker">QUERYAI / NATURAL-LANGUAGE SQL</div>
-
-          <h1 className="hero-title">
-            Ask your database what matters.
-          </h1>
-
-          <p className="hero-description">
-            QueryAI is for analysts, operators, and engineers who need answers from PostgreSQL without stopping to write every query by hand. Ask in plain language, inspect the SQL, and work from the real result.
-          </p>
-
-          <div className="hero-next-step"><span className="hero-next-step-line" />Start with a question. QueryAI maps it to your selected schema, keeps the query read-only, then shows you what came back.</div>
-
-          <div className="hero-cta-group">
-            <button
-              type="button"
-              className="btn-hero-primary"
-              onClick={onStartQuerying}
-            >
-              <span>Start Querying</span>
-              <ArrowRight size={16} />
-            </button>
-
-            <button
-              type="button"
-              className="btn-hero-text"
-              onClick={scrollToFeatures}
-            >
-              <span>See how it works</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-
-          <div className="hero-setup-links">
-            <span>New workspace?</span>
-            <button type="button" onClick={onConnectDatabase}><Database size={14} />Connect a database</button>
-            <button type="button" onClick={onImportSchema}><Code2 size={14} />Import a schema</button>
-          </div>
-
-          {/* Trust Indicator */}
-          <div className="hero-trust-row">
-            <div className="trust-indicator">
-              <span
-                className={`status-dot ${schemaStatus === "connected" ? "online" : "checking"}`}
-              />
-              <span className="trust-text">
-                {schemaStatus === "connected"
-                  ? "PostgreSQL Connected"
-                  : "Backend unavailable"}
-              </span>
-            </div>
-
-            <div className="trust-divider" />
-
-            <div className="trust-security">
-              <ShieldCheck size={14} className="security-icon" />
-              <span>Read-Only Guardrails Active</span>
-            </div>
-          </div>
+      {/* HERO SECTION */}
+      <section className="home-hero-card">
+        <div className="hero-pill-badge">
+          <Sparkles size={13} style={{ color: "var(--accent-primary-light)" }} />
+          <span>AIQ 2.0 · NATURAL LANGUAGE TO SQL</span>
         </div>
 
-        <div className="hero-product-surface" aria-label="QueryAI workflow preview">
-          <div className="surface-topline"><span className="surface-label">LIVE QUERY WORKSPACE</span><span className="surface-source"><span className="status-dot online" /> Student Database</span></div>
-          <div className="surface-question"><span className="surface-step">01 / ASK</span><p>Show students whose CGPA is greater than 8</p><span className="surface-cursor" /></div>
-          <div className="surface-connector"><span /> QueryAI generates a read-only query <span /></div>
-          <div className="surface-sql"><div className="surface-step">02 / SQL GENERATED</div><pre>{`SELECT name, cgpa
-FROM students
-WHERE cgpa > 8
-LIMIT 100;`}</pre><div className="surface-safe"><ShieldCheck size={13} /> Syntax validated · SELECT only</div></div>
-          <div className="surface-result"><div className="surface-result-head"><span className="surface-step">03 / RESULT</span><span>6 rows returned</span></div><div className="surface-result-row surface-result-columns"><span>Name</span><span>CGPA</span><span>Semester</span></div><div className="surface-result-row"><span>Ishaan</span><strong>9.6</strong><span>6</span></div><div className="surface-result-row"><span>Aarav</span><strong>9.2</strong><span>4</span></div></div>
-        </div>
-      </section>
+        <h1 className="home-hero-title">
+          Your Data. Your Questions. Instant Answers.
+        </h1>
 
-      {/* SECTION 2: PRODUCT PREVIEW */}
-      <section className="preview-section">
-        <div className="preview-card">
-          <div className="preview-card-header">
-            <div className="preview-header-left">
-              <span className="preview-kicker">Workflow detail</span>
-              <span className="preview-header-title">How QueryAI Works</span>
-            </div>
-            <div className="preview-dots">
-              <span className="window-dot red" />
-              <span className="window-dot yellow" />
-              <span className="window-dot green" />
-            </div>
-          </div>
+        <p className="home-hero-desc">
+          Transform natural language into SQL queries, explore your databases, and uncover insights with AI.
+        </p>
 
-          <div className="preview-steps-grid">
-            {/* Step 1: ASK */}
-            <div className="preview-step-col">
-              <div className="step-tag">
-                <span className="step-number">01</span>
-                <span className="step-label">ASK</span>
-              </div>
-              <div className="preview-step-box step-ask-box">
-                <div className="step-box-title">Natural Language Input</div>
-                <div className="sample-question-bubble">
-                  "Show students whose CGPA is greater than 8"
-                </div>
-                <div className="step-box-footnote">Plain English Question</div>
-              </div>
-            </div>
-
-            <div className="preview-arrow-divider">
-              <ArrowRight size={16} className="connector-arrow" />
-            </div>
-
-            {/* Step 2: GENERATE SQL */}
-            <div className="preview-step-col">
-              <div className="step-tag">
-                <span className="step-number">02</span>
-                <span className="step-label">GENERATE SQL</span>
-              </div>
-              <div className="preview-step-box step-sql-box">
-                <div className="step-box-title">
-                  <Code2 size={13} />
-                  <span>Gemini PostgreSQL Output</span>
-                </div>
-                <pre className="sample-sql-code">
-                  <code>{`SELECT name, cgpa
-FROM students
-WHERE cgpa > 8
-ORDER BY cgpa DESC
-LIMIT 100;`}</code>
-                </pre>
-                <div className="step-box-footnote">Syntax-Validated SQL</div>
-              </div>
-            </div>
-
-            <div className="preview-arrow-divider">
-              <ArrowRight size={16} className="connector-arrow" />
-            </div>
-
-            {/* Step 3: VIEW RESULTS */}
-            <div className="preview-step-col">
-              <div className="step-tag">
-                <span className="step-number">03</span>
-                <span className="step-label">VIEW RESULTS</span>
-              </div>
-              <div className="preview-step-box step-results-box">
-                <div className="step-box-title">
-                  <TableIcon size={13} />
-                  <span>Live Database Records</span>
-                </div>
-                <table className="sample-results-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>CGPA</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Ishaan</td>
-                      <td>9.6</td>
-                    </tr>
-                    <tr>
-                      <td>Aarav</td>
-                      <td>9.2</td>
-                    </tr>
-                    <tr>
-                      <td>Ananya</td>
-                      <td>9.1</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div className="step-box-footnote">Sample preview data</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 3: FEATURES */}
-      <section id="features-section" className="features-section">
-        <div className="section-header-wrap">
-          <h2 className="section-main-heading">
-            Everything you need to query smarter
-          </h2>
-          <p className="section-sub-heading">
-            Enterprise-grade translation with full query safety and zero manual SQL required.
-          </p>
-        </div>
-
-        <div className="features-grid">
-          {/* Card 1 */}
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <Sparkles size={20} className="feature-icon" />
-            </div>
-            <h3 className="feature-title">Natural Language to SQL</h3>
-            <p className="feature-description">
-              Ask questions in plain English and let AI generate the corresponding PostgreSQL query.
-            </p>
-          </div>
-
-          {/* Card 2 */}
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <Database size={20} className="feature-icon" />
-            </div>
-            <h3 className="feature-title">Live Database Results</h3>
-            <p className="feature-description">
-              Execute supported read-only queries and inspect results returned by your connected PostgreSQL database.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <ShieldCheck size={20} className="feature-icon success-icon" />
-            </div>
-            <h3 className="feature-title">Built-in Query Safety</h3>
-            <p className="feature-description">
-              Validate generated SQL and prevent destructive database operations through the existing backend safeguards.
-            </p>
-          </div>
-
-          {/* Card 4 */}
-          <div className="feature-card">
-            <div className="feature-icon-wrapper">
-              <Download size={20} className="feature-icon" />
-            </div>
-            <h3 className="feature-title">Export Your Results</h3>
-            <p className="feature-description">
-              Download query results as CSV for further analysis.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: HOW IT WORKS */}
-      <section className="workflow-section">
-        <div className="section-header-wrap">
-          <h2 className="section-main-heading">How It Works</h2>
-          <p className="section-sub-heading">
-            Three simple steps from natural curiosity to database truth.
-          </p>
-        </div>
-
-        <div className="workflow-cards-grid">
-          <div className="workflow-card">
-            <div className="workflow-number">01</div>
-            <h3 className="workflow-step-title">Ask a question</h3>
-            <p className="workflow-step-desc">
-              Describe the information you want from your database.
-            </p>
-          </div>
-
-          <div className="workflow-card">
-            <div className="workflow-number">02</div>
-            <h3 className="workflow-step-title">Generate SQL</h3>
-            <p className="workflow-step-desc">
-              QueryAI uses Gemini to generate a PostgreSQL query based on the available database schema.
-            </p>
-          </div>
-
-          <div className="workflow-card">
-            <div className="workflow-number">03</div>
-            <h3 className="workflow-step-title">Explore results</h3>
-            <p className="workflow-step-desc">
-              Review the generated SQL and inspect the actual results returned by your database.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 5: FINAL CALL TO ACTION */}
-      <section className="cta-panel-section">
-        <div className="cta-card">
-          <div className="cta-content">
-            <h2 className="cta-heading">Ready to explore your data?</h2>
-            <p className="cta-description">
-              Turn your questions into SQL and get meaningful answers from your database.
-            </p>
-          </div>
+        <div className="home-hero-cta-row">
           <button
             type="button"
-            className="btn-cta-action"
+            className="btn-primary-gradient"
             onClick={onStartQuerying}
           >
-            <span>Open Query Editor</span>
-            <ArrowRight size={16} />
+            <span>Start Querying</span>
+            <ArrowRight size={15} />
+          </button>
+
+          <button
+            type="button"
+            className="btn-secondary-surface"
+            onClick={onConnectDatabase}
+          >
+            <Database size={15} />
+            <span>Connect Database</span>
           </button>
         </div>
       </section>
 
-      {/* SECTION 6: FOOTER */}
-      <footer className="landing-footer">
-        <div className="footer-brand-title">QueryAI</div>
-        <div className="footer-tagline">
-          Natural-language querying for PostgreSQL.
+      {/* WORKSPACE OVERVIEW (4 REAL STATS CARDS) */}
+      <section>
+        <div className="section-headline">
+          <div>
+            <h2>Workspace Overview</h2>
+            <p>Live metrics and data source status for your active workspace</p>
+          </div>
         </div>
-      </footer>
+
+        <div className="home-stats-grid">
+          {/* 1. Connected Databases */}
+          <div className="stat-card">
+            <div className="stat-card-header">
+              <span className="stat-card-title">Connected Databases</span>
+              <div className="stat-card-icon-wrap">
+                <Database size={16} />
+              </div>
+            </div>
+            <div className="stat-card-value">
+              {liveCount}
+            </div>
+            <div className="stat-card-meta">
+              {totalSourcesCount > 0
+                ? `${totalSourcesCount} total configured sources`
+                : "No databases connected"}
+            </div>
+          </div>
+
+          {/* 2. Queries Executed */}
+          <div className="stat-card">
+            <div className="stat-card-header">
+              <span className="stat-card-title">Queries Executed</span>
+              <div className="stat-card-icon-wrap">
+                <Sparkles size={16} />
+              </div>
+            </div>
+            <div className="stat-card-value">
+              {queriesCount}
+            </div>
+            <div className="stat-card-meta">
+              {queriesCount > 0 ? "Saved in session history" : "Ready to run your first query"}
+            </div>
+          </div>
+
+          {/* 3. Saved Dashboards */}
+          <div className="stat-card">
+            <div className="stat-card-header">
+              <span className="stat-card-title">Saved Dashboards</span>
+              <div className="stat-card-icon-wrap">
+                <LayoutDashboard size={16} />
+              </div>
+            </div>
+            <div className="stat-card-value">
+              {dashboardsCount}
+            </div>
+            <div className="stat-card-meta">
+              {dashboardsCount > 0 ? "Pinned analytical query cards" : "Pin queries from studio"}
+            </div>
+          </div>
+
+          {/* 4. Active Source / Recent Activity */}
+          <div className="stat-card">
+            <div className="stat-card-header">
+              <span className="stat-card-title">Active Database</span>
+              <div className="stat-card-icon-wrap">
+                <Layers size={16} />
+              </div>
+            </div>
+            <div
+              className="stat-card-value"
+              style={{ fontSize: "18px", lineHeight: "1.3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+              title={activeSource?.name || "Default PostgreSQL"}
+            >
+              {activeSource ? activeSource.name : "PostgreSQL"}
+            </div>
+            <div className="stat-card-meta" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span className={`status-dot ${schemaStatus === "connected" ? "online" : "checking"}`} />
+              <span>{activeSource?.is_live ? "Live PostgreSQL" : "Schema Definition"}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* QUICK ACTIONS */}
+      <section>
+        <div className="section-headline">
+          <div>
+            <h2>Quick Actions</h2>
+            <p>Fast paths to query, manage, and explore database assets</p>
+          </div>
+        </div>
+
+        <div className="quick-actions-grid">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <div
+                key={action.id}
+                className="quick-action-card"
+                onClick={action.onClick}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div className="quick-action-icon-box">
+                    <Icon size={18} />
+                  </div>
+                  <span className="nav-tag">{action.tag}</span>
+                </div>
+                <div className="quick-action-title">{action.title}</div>
+                <div className="quick-action-desc">{action.description}</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* RECENT ACTIVITY */}
+      <section>
+        <div className="section-headline">
+          <div>
+            <h2>Recent Activity</h2>
+            <p>Recently generated queries with one-click re-run capability</p>
+          </div>
+          {recentQueries.length > 0 && (
+            <button
+              type="button"
+              className="btn-secondary-surface"
+              onClick={onStartQuerying}
+              style={{ padding: "6px 14px", fontSize: "12.5px" }}
+            >
+              Open Studio
+            </button>
+          )}
+        </div>
+
+        <div className="recent-activity-panel">
+          {recentQueries && recentQueries.length > 0 ? (
+            <div>
+              <div className="activity-table-header">
+                <div>Question / Prompt</div>
+                <div>Data Source</div>
+                <div>Status</div>
+                <div>Execution Time</div>
+                <div style={{ textAlign: "right" }}>Action</div>
+              </div>
+
+              {recentQueries.slice(0, 6).map((item, index) => (
+                <div
+                  key={item.id || index}
+                  className="activity-row"
+                  onClick={() => onSelectRecentQuery && onSelectRecentQuery(item)}
+                >
+                  <div className="activity-query-title" title={item.question}>
+                    {item.question}
+                  </div>
+
+                  <div className="activity-source-pill">
+                    <Database size={13} style={{ color: "var(--accent-primary-light)" }} />
+                    <span>{activeSource?.name || "PostgreSQL"}</span>
+                  </div>
+
+                  <div className="activity-status-tag">
+                    <CheckCircle2 size={13} />
+                    <span>{item.rowsCount !== undefined ? `${item.rowsCount} rows` : "Success"}</span>
+                  </div>
+
+                  <div className="activity-time">
+                    {item.durationMs ? `${item.durationMs}ms` : "< 100ms"}
+                  </div>
+
+                  <div className="activity-action-col">
+                    <span className="activity-run-link">
+                      <span>Open</span>
+                      <Play size={10} />
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="activity-empty-state">
+              <Sparkles size={36} style={{ color: "var(--accent-primary)", opacity: 0.7 }} />
+              <h3>No query activity yet</h3>
+              <p>
+                When you ask questions in AI Query Studio, queries and execution metrics will be recorded here for instant replay.
+              </p>
+              <button
+                type="button"
+                className="btn-primary-gradient"
+                onClick={onStartQuerying}
+                style={{ marginTop: "8px" }}
+              >
+                <span>Ask your first question</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
