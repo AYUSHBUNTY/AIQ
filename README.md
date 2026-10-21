@@ -189,7 +189,7 @@ QueryAI supports schema import, schema-aware SQL generation, explanations, and r
 **Ayush G**  
 GitHub: [AYUSHBUNTYY](https://github.com/AYUSHBUNTY)  
 LinkedIn: [Ayush G](https://www.linkedin.com/in/ayush-bunty12/)  
-Email: [EMAIL_ADDRESS]
+
 
 ---
 
